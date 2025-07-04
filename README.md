@@ -38,7 +38,7 @@ This project is a **GitHub Webhook Listener** built with Flask and MongoDB. It r
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/RohitDarekar816/webhook-repo.git
    cd webhook-repo
    ```
 
@@ -143,8 +143,8 @@ This project is licensed under the [MIT License](LICENSE).
 ## 📬 Contact
 
 - **Author:** Rohit
-- **Email:** [your-email@example.com](mailto:your-email@example.com)
-- **GitHub:** [your-github-username](https://github.com/your-github-username)
+- **Email:** [rohitdarekar816@gmail.com](mailto:your-email@example.com)
+- **GitHub:** [Rohitdarekar816](https://github.com/your-github-username)
 
 ---
 
