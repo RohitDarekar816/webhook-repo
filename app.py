@@ -1,10 +1,7 @@
-from operator import methodcaller
-from re import X
-from pymongo import MongoClient, server_api
-from types import MethodType
-from datetime import datetime
+from pymongo import MongoClient
+from datetime import datetime, timezone
 import json
-from unittest import result
+import pytz
 from flask import Flask, request, jsonify, render_template_string
 from dotenv import load_dotenv
 import os
@@ -25,70 +22,71 @@ app = Flask(__name__)
 def parse_event(event_type, payload):
     print(f"[INFO] Parsing event type: {event_type}")
 
-    # if event_type == "push":
-    #     try:
-    #         request_id = payload.get("after")
-    #         author = payload["head_commit"]["author"]["name"]
-    #         from_branch = payload.get("ref", "").split("/")[-1]
-    #         timestamp_raw = payload["head_commit"]["timestamp"]
-    #         # Convert to UTC ISO 8601 format
-    #         timestamp = (
-    #             datetime.fromisoformat(timestamp_raw.replace("Z", "+00:00"))
-    #             .astimezone()
-    #             .strftime("%Y-%m-%dT%H:%M:%SZ")
-    #         )
+    if event_type == "push":
+        try:
+            request_id = payload.get("after")
+            author = payload["head_commit"]["author"]["name"]
+            from_branch = payload.get("ref", "").split("/")[-1]
+            timestamp_raw = payload["head_commit"]["timestamp"]
+            # Convert to UTC ISO 8601 format
+            timestamp = datetime.fromisoformat(timestamp_raw)
+            timestamp_utc = timestamp.astimezone(timezone.utc)
+            formated_time = timestamp_utc.strftime("%d %B %Y %I:%M %p UTC")
 
-    #         print(f"[INFO] Parsed push event: commit={request_id}, author={author}, branch={from_branch}")
-    #         return {
-    #             "request_id": request_id,
-    #             "author": author,
-    #             "action": "Push",
-    #             "from_branch": from_branch,
-    #             "to_branch": None,
-    #             "timestamp": timestamp,
-    #         }
+            print(f"[INFO] Parsed push event: commit={request_id}, author={author}, branch={from_branch}, timestamp={formated_time}")
+            return {
+                "request_id": request_id,
+                "author": author,
+                "action": "Push",
+                "from_branch": from_branch,
+                "to_branch": None,
+                "timestamp": formated_time,
+            }
 
-    #     except Exception as e:
-    #         print("[ERROR] Failed to parse push event:")
-    #         traceback.print_exc()
-    #         return None
+        except Exception as e:
+            print("[ERROR] Failed to parse push event:")
+            traceback.print_exc()
+            return None
 
-    # elif event_type == "pull_request":
-    #     try:
-    #         request_id = payload.get("pull_request", {}).get("id")
-    #         author = payload.get("pull_request", {}).get("user", {}).get("login")
-    #         from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
-    #         to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
-    #         timestamp_raw = payload.get("pull_request", {}).get("created_at")
-    #         # Convert to UTC ISO 8601 format if timestamp exists
-    #         if timestamp_raw:
-    #             timestamp = (
-    #                 datetime.fromisoformat(timestamp_raw.replace("Z", "+00:00"))
-    #                 .astimezone()
-    #                 .strftime("%Y-%m-%dT%H:%M:%SZ")
-    #             )
-    #         else:
-    #             timestamp = None
+    elif event_type == "pull_request":
+        try:
+            action = payload.get("action")
+            if action == "opened":
+                action = "PR_Open"
+                status = "created_at"
+            elif action == "closed":
+                action = "PR_Closed"
+                status = "closed_at"
+            elif action == "reopened":
+                action = "PR_Reopened"
+                status = "created_at"
+            request_id = payload.get("number")
+            author = payload.get("pull_request", {}).get("user", {}).get("login")
+            from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
+            to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
+            timestamp_raw = payload.get("pull_request", {}).get(status)
+            timestamp = datetime.strptime(timestamp_raw, "%Y-%m-%dT%H:%M:%SZ")
+            timestamp = timestamp.replace(tzinfo=pytz.utc)
+            formated_time = timestamp.strftime("%d %B %Y %I:%M %p UTC")
+            
 
-    #         print(f"[INFO] Parsed pull_request event: id={request_id}, author={author}, from={from_branch}, to={to_branch}")
-    #         return {
-    #             "request_id": request_id,
-    #             "author": author,
-    #             "action": "Pull_Request",
-    #             "from_branch": from_branch,
-    #             "to_branch": to_branch,
-    #             "timestamp": timestamp,
-    #         }
+            print(f"[INFO] Parsed pull_request event: id={request_id}, author={author}, from={from_branch}, to={to_branch}, action={action}")
+            return {
+                "request_id": request_id,
+                "author": author,
+                "action": action,
+                "from_branch": from_branch,
+                "to_branch": to_branch,
+                "timestamp": formated_time,
+            }
 
-    #     except Exception as e:
-    #         print("[ERROR] Failed to parse pull_request event:")
-    #         traceback.print_exc()
-    #         return None
+        except Exception as e:
+            print("[ERROR] Failed to parse pull_request event:")
+            traceback.print_exc()
+            return None
 
-    # elif event_type == "pull_request_review":
-
-    # print(f"[WARN] Unsupported event type received: {event_type}")
-    # return None
+    print(f"[WARN] Unsupported event type received: {event_type}")
+    return None
 
 @app.route("/", methods=["GET"])
 def home():
@@ -173,44 +171,36 @@ commit_history_template = '''
             html += `<div class="text-center py-5">No commits found.</div>`;
         } else {
             commits.forEach((commit, idx) => {
-                // Format timestamp to IST and in the required format
-                let dateStr = '-';
-                if (commit.timestamp && commit.timestamp !== '-') {
-                    try {
-                        const date = new Date(commit.timestamp);
-                        // Convert to IST (UTC+5:30)
-                        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-                        const istOffset = 5.5 * 60 * 60000;
-                        const istDate = new Date(utc + istOffset);
-                        // Format: 1st April 2021 - 9:30 PM IST
-                        const day = istDate.getDate();
-                        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                        const month = monthNames[istDate.getMonth()];
-                        const year = istDate.getFullYear();
-                        let hours = istDate.getHours();
-                        const minutes = istDate.getMinutes().toString().padStart(2, '0');
-                        const ampm = hours >= 12 ? 'PM' : 'AM';
-                        hours = hours % 12;
-                        hours = hours ? hours : 12; // the hour '0' should be '12'
-                        // Day suffix
-                        const j = day % 10, k = day % 100;
-                        let daySuffix = 'th';
-                        if (j == 1 && k != 11) daySuffix = 'st';
-                        else if (j == 2 && k != 12) daySuffix = 'nd';
-                        else if (j == 3 && k != 13) daySuffix = 'rd';
-                        dateStr = `${day}${daySuffix} ${month} ${year} - ${hours}:${minutes} ${ampm} IST`;
-                    } catch (e) {
-                        dateStr = commit.timestamp;
-                    }
+                let dateStr = commit.timestamp || '-';
+                let meta = '';
+                if (commit.action === "PR_Open") {
+                    meta = `<div class="commit-meta">
+                        <span>${commit.author}</span> opened a PR on <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
+                    </div>`;
+                } else if (commit.action === "PR_Closed") {
+                    meta = `<div class="commit-meta">
+                        <span>${commit.author}</span> closed a PR on <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
+                    </div>`;
+                } else if (commit.action === "PR_Reopened") {
+                    meta = `<div class="commit-meta">
+                        <span>${commit.author}</span> reopened a PR on <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
+                    </div>`;
+                } else if (commit.action === "PR_Merged") {
+                    meta = `<div class="commit-meta">
+                        <span>${commit.author}</span> merged a PR on <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
+                    </div>`;
+                } else if (commit.action === "Push") {
+                    meta = `<div class="commit-meta">
+                        <span>${commit.author}</span> pushed to <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
+                    </div>`;
                 }
                 html += `
                 <div class="commit-item">
                     <img class="avatar" src="https://github.com/${commit.author || 'octocat'}.png" onerror="this.src='https://github.com/octocat.png'" alt="avatar">
                     <div class="commit-details">
-                        <div class="commit-message">${commit.action} on <span class="commit-id">${commit.request_id.slice(0,7)}</span></div>
-                        <div class="commit-meta">
-                            <span>${commit.author}</span> pushed to <span>"${commit.from_branch}"</span> on <span>${dateStr}</span>
-                        </div>
+                        <div class="commit-message">${commit.action} on with #<span class="commit-id">${commit.request_id.slice(0,7)}</span></div>
+                        
+                        ${meta}
                     </div>
                     ${idx === 0 ? '<span class="recent-badge">Recent</span>' : ''}
                 </div>
