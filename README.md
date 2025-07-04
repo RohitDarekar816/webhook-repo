@@ -147,7 +147,7 @@ This project is licensed under the [MIT License](LICENSE).
 - **GitHub:** [Rohitdarekar816](https://github.com/your-github-username)
 
 ---
-
+## 💁‍♂️ Support
 <p align="center">
   <a href="https://www.buymeacoffee.com/rohitdarekar"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=rohitdarekar&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
 </p>
