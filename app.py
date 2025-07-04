@@ -9,26 +9,28 @@ import traceback
 
 load_dotenv()
 
-uri = os.getenv("MONGO_URL")
+uri = os.getenv("MONGO_URL") # loading the database url from .env
 
+# connection to database
 client = MongoClient(uri)
 db = client["github-webhook"]
 collection = db["webhook"]
 
-
+# flask app
 app = Flask(__name__)
 
-
+# function to render the response send via github webhook
 def parse_event(event_type, payload):
     print(f"[INFO] Parsing event type: {event_type}")
 
     if event_type == "push":
+        # for push will render according
         try:
             request_id = payload.get("after")
             author = payload["head_commit"]["author"]["name"]
             from_branch = payload.get("ref", "").split("/")[-1]
             timestamp_raw = payload["head_commit"]["timestamp"]
-            # Convert to UTC ISO 8601 format
+            # Convert to UTC format
             timestamp = datetime.fromisoformat(timestamp_raw)
             timestamp_utc = timestamp.astimezone(timezone.utc)
             formated_time = timestamp_utc.strftime("%d %B %Y %I:%M %p UTC")
@@ -49,6 +51,7 @@ def parse_event(event_type, payload):
             return None
 
     elif event_type == "pull_request":
+        # for pull request we have the action as opened, closed, reopened with there diffrent timestamp status
         try:
             action = payload.get("action")
             if action == "opened":
@@ -64,7 +67,9 @@ def parse_event(event_type, payload):
             author = payload.get("pull_request", {}).get("user", {}).get("login")
             from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
             to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
+            # We will get the status for timestam_raw from above if condations
             timestamp_raw = payload.get("pull_request", {}).get(status)
+            # for pull request the github webhook send the timestamp in UTC format
             timestamp = datetime.strptime(timestamp_raw, "%Y-%m-%dT%H:%M:%SZ")
             timestamp = timestamp.replace(tzinfo=pytz.utc)
             formated_time = timestamp.strftime("%d %B %Y %I:%M %p UTC")
@@ -88,6 +93,7 @@ def parse_event(event_type, payload):
     print(f"[WARN] Unsupported event type received: {event_type}")
     return None
 
+# I will use this route to send notification to my mattermost server to have the mobile notification
 @app.route("/", methods=["GET"])
 def home():
     # Fetch all documents from the collection and return as JSON
@@ -97,6 +103,7 @@ def home():
         doc["_id"] = str(doc["_id"])
     return jsonify(docs)
 
+# This is the route where out github will send the webhook
 @app.route("/webhook", methods=["POST"])
 def github_webhook():
     try:
@@ -119,6 +126,7 @@ def github_webhook():
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# This is route for out frontend UI to fetch the data from our database
 @app.route("/api/commits", methods=["GET"])
 def api_commits():
     docs = list(collection.find())
@@ -132,7 +140,7 @@ def api_commits():
         doc["to_branch"] = doc.get("to_branch", None)
     return jsonify(docs)
 
-# HTML template for GitHub-like commit history
+# HTML template commit history
 commit_history_template = '''
 <!DOCTYPE html>
 <html lang="en">
