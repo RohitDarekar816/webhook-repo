@@ -152,6 +152,12 @@ This project is licensed under the [MIT License](LICENSE).
   <a href="https://www.buymeacoffee.com/rohitdarekar"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=rohitdarekar&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
 </p>
 
+<p align="center">
+  <img src="bmc_qr.png" alt="Buy Me a Coffee QR" width="200" />
+  <br/>
+  <em>Scan to support me on Buy Me a Coffee!</em>
+</p>
+
 ---
 
 > _Built with ❤️ for DevOps, Automation, and Open Source._
