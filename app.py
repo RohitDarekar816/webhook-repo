@@ -1,3 +1,4 @@
+from email import message
 from pymongo import MongoClient
 from datetime import datetime, timezone
 import json
@@ -34,12 +35,13 @@ def parse_event(event_type, payload):
             from_branch = payload.get("ref", "").split("/")[-1]
             timestamp_raw = payload["head_commit"]["timestamp"]
             avatar_url = payload.get("repository", {}).get("owner", {}).get("avatar_url")
+            commit_msg = payload["head_commit"]["message"]
             # Convert to UTC format
             timestamp = datetime.fromisoformat(timestamp_raw)
             timestamp_utc = timestamp.astimezone(timezone.utc)
             formated_time = timestamp_utc.strftime("%d %B %Y %I:%M %p UTC")
 
-            print(f"[INFO] Parsed push event: commit={request_id}, author={author}, branch={from_branch}, timestamp={formated_time}")
+            print(f"[INFO] Parsed push event: commit={request_id}, author={author}, branch={from_branch}, timestamp={formated_time}, commit_msg={commit_msg}")
             return {
                 "request_id": request_id,
                 "author": author,
@@ -48,6 +50,7 @@ def parse_event(event_type, payload):
                 "to_branch": None,
                 "timestamp": formated_time,
                 "avatar_url": avatar_url,
+                "commit_msg": commit_msg,
             }
 
         except Exception as e:
@@ -73,6 +76,7 @@ def parse_event(event_type, payload):
             from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
             to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
             avatar_url = payload.get("pull_request", {}).get("user", {}).get("avatar_url")
+            commit_msg = payload["head_commit"]["message"]
             # We will get the status for timestam_raw from above if condations
             timestamp_raw = payload.get("pull_request", {}).get(status)
             # for pull request the github webhook send the timestamp in UTC format
@@ -81,7 +85,7 @@ def parse_event(event_type, payload):
             formated_time = timestamp.strftime("%d %B %Y %I:%M %p UTC")
             
 
-            print(f"[INFO] Parsed pull_request event: id={request_id}, author={author}, from={from_branch}, to={to_branch}, action={action}")
+            print(f"[INFO] Parsed pull_request event: id={request_id}, author={author}, from={from_branch}, to={to_branch}, action={action}, commit_msg={commit_msg}")
             return {
                 "request_id": request_id,
                 "author": author,
@@ -90,6 +94,7 @@ def parse_event(event_type, payload):
                 "to_branch": to_branch,
                 "timestamp": formated_time,
                 "avatar_url": avatar_url,
+                "commit_msg": commit_msg,
             }
 
         except Exception as e:
@@ -111,7 +116,7 @@ def home():
     return jsonify(docs)
 
 # Send data to mattermost API
-def send_mattermost_message(author, action, from_branch, timestamp):
+def send_mattermost_message(author, action, from_branch, timestamp, commit_msg):
     mattermost_url = os.getenv("MATTERMOST_URL")
     if not mattermost_url:
         print("[ERROR] MATTERMOST_URL not set in environment.")
@@ -119,7 +124,7 @@ def send_mattermost_message(author, action, from_branch, timestamp):
     payload = {
         "username": "GitBot",
         "icon_url": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/octobot-light.svg",
-        "text": f"/// {author} has {action} on {from_branch} at {timestamp}"
+        "text": f"/// {author} has {action} on {from_branch} at {timestamp} with commit {commit_msg}"
     }
     try:
         response = requests.post(mattermost_url, json=payload)
@@ -151,7 +156,7 @@ def github_webhook():
         print(f"[INFO] Successfully inserted document with ID: {result.inserted_id}")
         # Send notification to Mattermost
         if notification_reciver == "mattermost":
-            send_mattermost_message(parsed["author"], parsed["action"], parsed["from_branch"], parsed["timestamp"])
+            send_mattermost_message(parsed["author"], parsed["action"], parsed["from_branch"], parsed["timestamp"], parsed["commit_msg"])
         elif notification_reciver == "slack":
             return None
 
@@ -242,7 +247,7 @@ commit_history_template = '''
                 <div class="commit-item">
                     <img class="avatar" src="${commit.avatar_url || 'octocat'}.png" onerror="this.src='https://github.com/octocat.png'" alt="avatar">
                     <div class="commit-details">
-                        <div class="commit-message">${commit.action} on with #<span class="commit-id">${commit.request_id.slice(0,7)}</span></div>
+                        <div class="commit-message">${commit.action} on with #<span class="commit-id">${commit.request_id.slice(0,7)} [${commit.commit_msg}]</span></div>
                         ${meta}
                     </div>
                     ${idx === 0 ? '<span class="recent-badge">Recent</span>' : ''}
