@@ -12,6 +12,7 @@ load_dotenv()
 
 uri = os.getenv("MONGO_URL") # loading the database url from .env
 notification_reciver = os.getenv("NOTIFICATION_RECIVER")
+port = os.getenv("PORT")
 
 # connection to database
 client = MongoClient(uri)
@@ -129,12 +130,15 @@ def send_mattermost_message(author, action, from_branch, timestamp):
 # call send_mattermost_message function
 
 
-# This is the route where out github will send the webhook
+# This is the route where our GitHub will send the webhook
 @app.route("/webhook", methods=["POST"])
 def github_webhook():
     try:
         event_type = request.headers.get("X-GitHub-Event", "unknown")
-        payload = request.json or json.loads(request.data)
+        if request.is_json:
+            payload = request.get_json()
+        else:
+            payload = json.loads(request.data.decode("utf-8"))
 
         print(f"[INFO] Received event: {event_type}")
         parsed = parse_event(event_type, payload)

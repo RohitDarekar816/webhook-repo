@@ -1,0 +1,9 @@
+services:
+  web:
+    image: rohitdarekar816/gitcommits.slim:latest
+    container_name: webapp
+    ports:
+      - 5004:5004
+    env_file:
+      - .env
+    
