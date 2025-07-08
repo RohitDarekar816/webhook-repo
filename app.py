@@ -72,7 +72,7 @@ def parse_event(event_type, payload):
                 action = "PR_Reopened"
                 status = "created_at"
             request_id = payload.get("number")
-            author = payload.get("pull_request", {}).get("user", {}).get("login")
+            author = author = payload["head_commit"]["author"]["name"]
             from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
             to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
             avatar_url = payload.get("pull_request", {}).get("user", {}).get("avatar_url")

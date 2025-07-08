@@ -1,0 +1,52 @@
+kind: pipeline
+type: digitalocean
+name: default
+
+token:
+  from_secret: token
+
+server:
+  image: docker-18-04
+  size: s-1vcpu-1gb
+  region: nyc1
+
+steps:
+  - name: login to docker hub
+    environment:
+      docker_hub_secret:
+        from_secret: DOCKER_HUB_TOKEN
+    commands:
+      - docker login -u rohitdarekar816 -p $docker_hub_token
+
+  - name: Build docker image
+    commands:
+      - docker build -t rohitdarekar/gitcommits:${DRONE_COMMIT_SHA:0:10} .
+    depends_on:
+      - login to docker hub
+
+  - name: Install slim tool kit
+    commands:
+      - curl -sL https://raw.githubusercontent.com/slimtoolkit/slim/master/scripts/install-slim.sh | sudo -E bash -
+    depends_on:
+      - Build docker image
+
+  - name: use slim and compress image
+    commands:
+      - slim build --env-file .env rohitdarekar816/gitcommits:${DRONE_COMMIT_SHA:0:10}
+    depends_on:
+      - Install slim tool kit
+  
+  - name: docker image push
+    commands:
+      - docker push rohitdarekar816/gitcommits.slim:latest
+    depends_on:
+      - use slim and compress image
+
+trigger:
+  event:
+    - push
+    - tag
+    - pull_request
+  branch:
+    - main
+    
