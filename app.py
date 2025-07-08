@@ -6,10 +6,12 @@ from flask import Flask, request, jsonify, render_template_string
 from dotenv import load_dotenv
 import os
 import traceback
+import requests
 
 load_dotenv()
 
 uri = os.getenv("MONGO_URL") # loading the database url from .env
+notification_reciver = os.getenv("NOTIFICATION_RECIVER")
 
 # connection to database
 client = MongoClient(uri)
@@ -30,6 +32,7 @@ def parse_event(event_type, payload):
             author = payload["head_commit"]["author"]["name"]
             from_branch = payload.get("ref", "").split("/")[-1]
             timestamp_raw = payload["head_commit"]["timestamp"]
+            avatar_url = payload.get("repository", {}).get("owner", {}).get("avatar_url")
             # Convert to UTC format
             timestamp = datetime.fromisoformat(timestamp_raw)
             timestamp_utc = timestamp.astimezone(timezone.utc)
@@ -43,6 +46,7 @@ def parse_event(event_type, payload):
                 "from_branch": from_branch,
                 "to_branch": None,
                 "timestamp": formated_time,
+                "avatar_url": avatar_url,
             }
 
         except Exception as e:
@@ -67,6 +71,7 @@ def parse_event(event_type, payload):
             author = payload.get("pull_request", {}).get("user", {}).get("login")
             from_branch = payload.get("pull_request", {}).get("head", {}).get("ref")
             to_branch = payload.get("pull_request", {}).get("base", {}).get("ref")
+            avatar_url = payload.get("pull_request", {}).get("user", {}).get("avatar_url")
             # We will get the status for timestam_raw from above if condations
             timestamp_raw = payload.get("pull_request", {}).get(status)
             # for pull request the github webhook send the timestamp in UTC format
@@ -83,6 +88,7 @@ def parse_event(event_type, payload):
                 "from_branch": from_branch,
                 "to_branch": to_branch,
                 "timestamp": formated_time,
+                "avatar_url": avatar_url,
             }
 
         except Exception as e:
@@ -103,6 +109,26 @@ def home():
         doc["_id"] = str(doc["_id"])
     return jsonify(docs)
 
+# Send data to mattermost API
+def send_mattermost_message(author, action, from_branch, timestamp):
+    mattermost_url = os.getenv("MATTERMOST_URL")
+    if not mattermost_url:
+        print("[ERROR] MATTERMOST_URL not set in environment.")
+        return
+    payload = {
+        "username": "GitBot",
+        "icon_url": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/octobot-light.svg",
+        "text": f"/// {author} has {action} on {from_branch} at {timestamp}"
+    }
+    try:
+        response = requests.post(mattermost_url, json=payload)
+        print(f"[Mattermost] Message send to Mattermost with {response.status_code}: {response.text}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send message to Mattermost: {e}")
+
+# call send_mattermost_message function
+
+
 # This is the route where out github will send the webhook
 @app.route("/webhook", methods=["POST"])
 def github_webhook():
@@ -119,6 +145,12 @@ def github_webhook():
 
         result = collection.insert_one(parsed)
         print(f"[INFO] Successfully inserted document with ID: {result.inserted_id}")
+        # Send notification to Mattermost
+        if notification_reciver == "mattermost":
+            send_mattermost_message(parsed["author"], parsed["action"], parsed["from_branch"], parsed["timestamp"])
+        elif notification_reciver == "slack":
+            return None
+
         return jsonify({"status": "success", "inserted_id": str(result.inserted_id)}), 201
 
     except Exception as e:
@@ -204,10 +236,9 @@ commit_history_template = '''
                 }
                 html += `
                 <div class="commit-item">
-                    <img class="avatar" src="https://github.com/${commit.author || 'octocat'}.png" onerror="this.src='https://github.com/octocat.png'" alt="avatar">
+                    <img class="avatar" src="${commit.avatar_url || 'octocat'}.png" onerror="this.src='https://github.com/octocat.png'" alt="avatar">
                     <div class="commit-details">
                         <div class="commit-message">${commit.action} on with #<span class="commit-id">${commit.request_id.slice(0,7)}</span></div>
-                        
                         ${meta}
                     </div>
                     ${idx === 0 ? '<span class="recent-badge">Recent</span>' : ''}
