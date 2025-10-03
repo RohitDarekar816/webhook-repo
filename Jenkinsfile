@@ -20,6 +20,7 @@ pipeline {
       steps {
         echo notification sent
         echo notification to Google chats
+        echo This is a email notification
       }
     }
   }
