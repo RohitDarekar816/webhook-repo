@@ -19,6 +19,7 @@ pipeline {
     stage('notification') {
       steps {
         echo notification sent
+        echo notification to Google chats
       }
     }
   }
