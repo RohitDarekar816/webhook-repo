@@ -23,5 +23,10 @@ pipeline {
         echo This is a email notification
       }
     }
+    stage('Success') {
+      steps {
+        echo This pipeline is success
+      }
+    }
   }
 }
