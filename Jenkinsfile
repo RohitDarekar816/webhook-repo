@@ -104,7 +104,7 @@ pipeline {
     success {
       steps {
         script {
-          def message = "This prod_infra pipeline is success"
+          def message = "This prod_infra pipeline is success!"
           def jsonPayload = "{\"text\": \"${message}\"}"
           sh """
             curl -X POST \\
