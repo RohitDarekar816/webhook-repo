@@ -17,13 +17,17 @@ pipeline {
       }
     }
 
-    stage('Test') {
+    stage('Build') {
       steps {
-        echo 'This is a Test stage.'
+        script {
+          sh """
+            docker build -t rohitdarekar816/gitcommits:jen1 .
+          """
+        }
       }
     }
 
-    stage('Deploy') {
+    stage('Push to Dockier Hub') {
       steps {
         echo 'This is a Deploy stage.'
       }
