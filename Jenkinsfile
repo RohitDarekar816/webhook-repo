@@ -110,36 +110,31 @@ pipeline {
 
   post {
     success {
-      steps {
         script {
-          def message = "This prod_infra pipeline is success!"
-          def jsonPayload = "{\"text\": \"${message}\"}"
-          sh """
-            curl -X POST \\
-            -H "Content-Type: application/json" \\
-            -d '${jsonPayload}' \\
-            "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
-          """
+            def message = "This prod_infra pipeline is success!"
+            def jsonPayload = """{"text": "${message}"}"""
+            sh """
+                curl -X POST \\
+                -H "Content-Type: application/json" \\
+                -d '${jsonPayload}' \\
+                "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
+            """
         }
-      }
     }
     unstable {
-      steps {
         script {
-          def message = "This prod_infra pipeline is unstable but docker image has been pushed!"
-          def jsonPayload = "{\"text\": \"${message}\"}"
-          sh """
-            curl -X POST \\
-            -H "Content-Type: application/json" \\
-            -d '${jsonPayload}' \\
-            "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
-          """
+            def message = "This prod_infra pipeline is unstable but docker image has been pushed!"
+            def jsonPayload = """{"text": "${message}"}"""
+            sh """
+                curl -X POST \\
+                -H "Content-Type: application/json" \\
+                -d '${jsonPayload}' \\
+                "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
+            """
         }
-      }
     }
     always {
-      echo 'This message always runs, regardless of success or failure.'
+        echo 'This message always runs, regardless of success or failure.'
     }
-  }
 }
 
