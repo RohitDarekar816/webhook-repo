@@ -84,7 +84,7 @@ pipeline {
         script {
           def scanreportFile = 'trivy-report.json'
           sh """
-            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${reportFile} rohitdarekar816/gitcommits:slim
+            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:slim
           """
           archiveArtifacts artifacts: "${scanreportFile}", fingerprint: true
         }
