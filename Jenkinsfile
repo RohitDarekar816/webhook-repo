@@ -28,7 +28,7 @@ pipeline {
               """,
             returnStatus: true
           )
-          archiveArtifacts artifacts: "${reportFile}", fingerprint: true
+          // archiveArtifacts artifacts: "${reportFile}", fingerprint: true
 
           if (exitcode !=0) {
             echo "Vulnerabilities found in file scan!"
@@ -86,7 +86,7 @@ pipeline {
           sh """
             docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:slim
           """
-          archiveArtifacts artifacts: "${scanreportFile}", fingerprint: true
+          // archiveArtifacts artifacts: "${scanreportFile}", fingerprint: true
         }
       }
     }
