@@ -21,7 +21,7 @@ pipeline {
       steps {
         script {
           sh """
-            docker build -t rohitdarekar816/gitcommits:jen1 .
+            docker build -t rohitdarekar816/gitcommits:latest .
           """
         }
       }
