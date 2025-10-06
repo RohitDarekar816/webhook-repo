@@ -31,8 +31,8 @@ pipeline {
       steps {
         script {
           sh 'slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" rohitdarekar816/gitcommits:latest'
-          echo 'List docker images'
           sh 'docker images'
+          sh 'docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:slim'
         }
       }
     }
