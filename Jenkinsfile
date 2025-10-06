@@ -4,10 +4,16 @@ pipeline {
   stages {
     stage('Start Notification') {
       steps {
-        curl -X POST \
-  -H "Content-Type: application/json" \
-  -d "{\"text\": \"The prod_infra has been trigger\"}" \
-  "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
+        script {
+          def message = "This prod_infra pipeline has been triggerd"
+          def jsonPayload = "{\"text\": \"${message}\"}"
+          sh """
+            curl -X POST \\
+            -H "Content-Type: application/json" \\
+            -d '${jsonPayload}' \\
+            "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
+          """
+        }
       }
     }
 
