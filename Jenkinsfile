@@ -82,9 +82,8 @@ pipeline {
     stage('Scan iamge') {
       steps {
         script {
-          def image = 'rohitdarekar816/gitcommits:slim'
           def reportFile = 'trivy-report.json'
-          sh 'docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${reportFile} ${image}'
+          sh 'docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${reportFile} rohitdarekar816/gitcommits:slim'
           archiveArtifacts artifacts: "${reportFile}", fingerprint: true
         }
       }
