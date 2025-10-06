@@ -17,7 +17,42 @@ pipeline {
       }
     }
 
-    stage('Compress Docker Image') {
+    stage('filesystem scan') {
+      steps {
+        script {
+          def reportFile = 'trivy-filescan-report.json'
+          def webhookUrl = 'https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk'
+          def exitcode = sh(
+            script: """
+              trivy fs --scanners vuln,secret,misconfig --exit-code 1 --format json -o ${image} .
+              """,
+            returnStatus: true
+          )
+          archiveArtifacts artifacts: "${reportFile}", fingerprint: true
+
+          if (exitcode !=0) {
+            echo "Vulnerabilities found in file scan!"
+            def message = """
+            {
+              "text": "⚠️ *Vulnerabilities found in container file scan!*
+                Severity: HIGH/CRITICAL
+                Build: ${env.BUILD_URL}"
+            }
+            """
+            sh """
+              curl -X POST -H 'Content-Type: application/json' \
+              -d '${message.trim()}' \
+              '${webhookUrl}'
+            """
+            error("Trivy scan failed due to vulnerabilities.")
+          } else {
+            echo "No critical vulnerabilities found."
+          }
+          }
+        }
+      }
+
+    stage('Build Docker Image') {
       steps {
         script {
           sh """
@@ -31,8 +66,25 @@ pipeline {
       steps {
         script {
           sh 'slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" rohitdarekar816/gitcommits:latest'
-          sh 'docker images'
+        }
+      }
+    }
+
+    stage('rename docker image') {
+      steps{
+        script{
           sh 'docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:slim'
+        }
+      }
+    }
+
+    stage('Scan iamge') {
+      steps {
+        script {
+          def image = 'rohitdarekar816/gitcommits:slim'
+          def reportFile = 'trivy-report.json'
+          sh 'docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${reportFile} ${image}'
+          archiveArtifacts artifacts: "${reportFile}", fingerprint: true
         }
       }
     }
