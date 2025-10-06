@@ -30,18 +30,18 @@ pipeline {
     stage('Compress Docker Image using slim') {
       steps {
         script {
-          sh 'slim build rohitdarekar816/gitcommits:latest'
+          sh 'slim --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" build rohitdarekar816/gitcommits:latest'
           echo 'List docker images'
           sh 'docker images'
         }
       }
     }
 
-    stage('Notification') {
+    stage('Push to Docker Hub') {
       steps {
-        echo 'Notification sent'
-        echo 'Notification to Google Chats'
-        echo 'This is an email notification'
+        script {
+          sh 'docker push rohitdarekar816/gitcommits:slim'
+        }
       }
     }
   }
