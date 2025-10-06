@@ -101,7 +101,18 @@ pipeline {
 
   post {
     success {
-      echo 'This pipeline completed successfully.'
+      steps {
+        script {
+          def message = "This prod_infra pipeline is success"
+          def jsonPayload = "{\"text\": \"${message}\"}"
+          sh """
+            curl -X POST \\
+            -H "Content-Type: application/json" \\
+            -d '${jsonPayload}' \\
+            "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
+          """
+        }
+      }
     }
     failure {
       echo 'This pipeline failed.'
