@@ -17,7 +17,7 @@ pipeline {
       }
     }
 
-    stage('Build') {
+    stage('Compress Docker Image') {
       steps {
         script {
           sh """
@@ -27,9 +27,13 @@ pipeline {
       }
     }
 
-    stage('Push to Dockier Hub') {
+    stage('Compress Docker Image using slim') {
       steps {
-        echo 'This is a Deploy stage.'
+        script {
+          sh 'slim build rohitdarekar816/gitcommits:latest'
+          echo 'List docker images'
+          sh 'docker images'
+        }
       }
     }
 
