@@ -24,7 +24,7 @@ pipeline {
           def webhookUrl = 'https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk'
           def exitcode = sh(
             script: """
-              trivy fs --scanners vuln,secret,misconfig --exit-code 1 --format json -o ${image} .
+              trivy fs --scanners vuln,secret,misconfig --exit-code 1 --format json -o ${reportFile} .
               """,
             returnStatus: true
           )
