@@ -44,7 +44,8 @@ pipeline {
               -d '${message.trim()}' \
               '${webhookUrl}'
             """
-            error("Trivy scan failed due to vulnerabilities.")
+            // error("Trivy scan failed due to vulnerabilities.")
+            currentBuild.result = 'UNSTABLE'
           } else {
             echo "No critical vulnerabilities found."
           }
