@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'node1' }
+  agent { label 'docr-agent' }
 
   stages {
     stage('Start Notification') {
