@@ -2,9 +2,12 @@ pipeline {
   agent any
 
   stages {
-    stage('Build') {
+    stage('Start Notification') {
       steps {
-        echo 'This is a Build stage.'
+        curl -X POST \
+  -H "Content-Type: application/json" \
+  -d "{\"text\": \"The prod_infra has been trigger\"}" \
+  "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
       }
     }
 
