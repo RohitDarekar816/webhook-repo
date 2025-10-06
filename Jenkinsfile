@@ -17,6 +17,14 @@ pipeline {
       }
     }
 
+    stage('remove any docker image'){
+      steps {
+        script {
+          sh 'docker image prune -a -f'
+        }
+      }
+    }
+
     stage('filesystem scan') {
       steps {
         script {
