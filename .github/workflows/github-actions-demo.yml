@@ -33,7 +33,7 @@ jobs:
 
   build_docker_image:
     needs: notification
-    runs-on: ubuntu-latest
+    runs-on: git-runnner
     steps:
       - name: Check out the repository
         uses: actions/checkout@v5
