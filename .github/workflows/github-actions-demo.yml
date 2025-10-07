@@ -52,8 +52,11 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          push: true
+          push: false
           tags: rohitdarekar816/gitcommits:git
+      
+      - name: compress docker image
+        run: docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock dslim/slim build ohitdarekar816/gitcommits:git
 
   deploy:
     needs: build_docker_image
