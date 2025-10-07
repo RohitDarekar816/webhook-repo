@@ -65,23 +65,14 @@ jobs:
       
       - name: rename docker image
         run: docker tag rohitdarekar816/gitcommits.slim ghcr.io/rohitdarekar816/webhook-repo:git
-      
-  scan_image:
-    needs: build_docker_image
-    runs-on: ubuntu-latest
-    steps:
+    
       - name: scan docker image via trivy
-        run: trivy image ghcr.io/rohitdarekar816/webhook-repo:git
+        run: docker run -v /var/run/docker.sock:/var/run/docker.sock -v $HOME/Library/Caches:/root/.cache/ aquasec/trivy:0.67.0 image ghcr.io/rohitdarekar816/webhook-repo:git
   
-  Push_image:
-    needs: scan_image
-    runs-on: ubuntu-latest
-    steps:
       - name: push image to ghcr
         run: docker push ghcr.io/rohitdarekar816/webhook-repo:git
 
   post_success_notification:
-    needs: Push_image
     runs-on: ubuntu-latest
     env:
       webhook_url: "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
