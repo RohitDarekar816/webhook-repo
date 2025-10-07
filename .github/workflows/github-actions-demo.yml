@@ -56,7 +56,7 @@ jobs:
           tags: rohitdarekar816/gitcommits:git
       
       - name: compress docker image
-        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dslim/slim build rohitdarekar816/gitcommits:git
+        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dslim/slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" rohitdarekar816/gitcommits:git
 
   deploy:
     needs: build_docker_image
