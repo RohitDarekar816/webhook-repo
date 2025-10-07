@@ -16,3 +16,8 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - run: echo "This is a test build"
