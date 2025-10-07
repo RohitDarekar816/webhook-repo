@@ -54,3 +54,10 @@ jobs:
         with:
           push: true
           tags: rohitdarekar816/gitcommits:git
+
+  deploy:
+    needs: build_docker_image
+    runs-on: ubuntu-latest
+    steps:
+      - name: This is test steps
+        run: echo "This is a test msg"
