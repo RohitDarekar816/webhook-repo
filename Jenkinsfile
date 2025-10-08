@@ -125,7 +125,7 @@ pipeline {
   post {
     success {
         script {
-            def message = "This prod_infra pipeline is success!"
+            def message = "This prod_infra pipeline is success! at jenkins pipeline"
             def jsonPayload = """{"text": "${message}"}"""
             sh """
                 curl -X POST \\
