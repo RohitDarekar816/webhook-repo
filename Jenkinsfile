@@ -74,7 +74,9 @@ pipeline {
     stage('Compress Docker Image using slim') {
       steps {
         script {
-          sh 'slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" rohitdarekar816/gitcommits:latest'
+          sh """
+          slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" rohitdarekar816/gitcommits:latest
+          """
         }
       }
     }
@@ -82,7 +84,9 @@ pipeline {
     stage('rename docker image') {
       steps{
         script{
-          sh 'docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:slim'
+          sh """
+          docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:${COMMIT_SHA}
+          """
         }
       }
     }
@@ -92,7 +96,7 @@ pipeline {
         script {
           def scanreportFile = 'trivy-report.json'
           sh """
-            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:slim
+            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:${COMMIT_SHA}
           """
           // archiveArtifacts artifacts: "${scanreportFile}", fingerprint: true
         }
@@ -102,7 +106,9 @@ pipeline {
     stage('Push to Docker Hub') {
       steps {
         script {
-          sh 'docker push rohitdarekar816/gitcommits:slim'
+          sh """
+          docker push rohitdarekar816/gitcommits:${COMMIT_SHA}
+          """
         }
       }
     }
