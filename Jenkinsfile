@@ -1,10 +1,6 @@
 pipeline {
   agent { label 'do-agent' }
 
-  environment {
-    COMMIT_SHA = ''
-  }
-
   stages {
     stage('Start Notification') {
       steps {
@@ -17,16 +13,6 @@ pipeline {
             -d '${jsonPayload}' \\
             "https://chat.googleapis.com/v1/spaces/AAQAoL3O840/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=iqBfBelvIk5ZaQ55RhdOTR0s-IwkOVm_ZCsD23SWsbk"
           """
-        }
-      }
-    }
-
-    stage('Get Commit SHA') {
-      steps {
-        script {
-          def sha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-          env.COMMIT_SHA = sha
-          echo "Commit SHA: ${env.COMMIT_SHA}"
         }
       }
     }
@@ -99,7 +85,7 @@ pipeline {
       steps{
         script{
           sh """
-          docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:${env.COMMIT_SHA}
+          docker tag rohitdarekar816/gitcommits.slim rohitdarekar816/gitcommits:latest
           """
         }
       }
@@ -110,7 +96,7 @@ pipeline {
         script {
           def scanreportFile = 'trivy-report.json'
           sh """
-            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:${env.COMMIT_SHA}
+            docker run --rm -v $PWD:/root/scan aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL --format json -o /root/scan/${scanreportFile} rohitdarekar816/gitcommits:latest
           """
           // archiveArtifacts artifacts: "${scanreportFile}", fingerprint: true
         }
@@ -121,7 +107,7 @@ pipeline {
       steps {
         script {
           sh """
-          docker push rohitdarekar816/gitcommits:${env.COMMIT_SHA}
+          docker push rohitdarekar816/gitcommits:latest
           """
         }
       }
@@ -139,7 +125,7 @@ pipeline {
   post {
     success {
         script {
-            def message = "This prod_infra pipeline is success! at jenkins pipeline and docker image has been pushed! wihh tag: ${env.COMMIT_SHA}"
+            def message = "This prod_infra pipeline is success! at jenkins pipeline and docker image has been pushed! wihh tag: latest"
             def jsonPayload = """{"text": "${message}"}"""
             sh """
                 curl -X POST \\
