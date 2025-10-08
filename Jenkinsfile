@@ -1,11 +1,11 @@
 pipeline {
-  agent { label 'docr-agent' }
+  agent { label 'do-agent' }
 
   stages {
     stage('Start Notification') {
       steps {
         script {
-          def message = "This prod_infra pipeline has been triggerd"
+          def message = "This prod_infra pipeline has been triggerd from jenkins!"
           def jsonPayload = "{\"text\": \"${message}\"}"
           sh """
             curl -X POST \\
