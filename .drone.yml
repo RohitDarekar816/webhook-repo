@@ -40,6 +40,8 @@ steps:
     commands:
       - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:10}
       - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:latest
+    depends_on:
+      - use slim and compress image
 
   - name: docker image push
     commands:
@@ -53,4 +55,3 @@ trigger:
     - push
   branch:
     - main
-
