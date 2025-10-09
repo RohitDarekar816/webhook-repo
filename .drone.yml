@@ -6,9 +6,9 @@ token:
   from_secret: token
 
 server:
-  image: docker-18-04
-  size: s-1vcpu-1gb
-  region: nyc1
+  image: docker-20-04
+  size: s-2vcpu-4gb-120gb-intel
+  region: blr1
 
 steps:
   - name: login to docker hub
