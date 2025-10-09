@@ -8,7 +8,7 @@ token:
 server:
   image: docker-20-04
   size: s-2vcpu-4gb-120gb-intel
-  region: blr1
+  region: nyc3
 
 steps:
   - name: login to docker hub
