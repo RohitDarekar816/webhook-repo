@@ -13,14 +13,14 @@ server:
 steps:
   - name: login to docker hub
     environment:
-      docker_hub_secret:
-        from_secret: DOCKER_HUB_TOKEN
+      token:
+        from_secret: token
     commands:
-      - docker login -u rohitdarekar816 -p $docker_hub_token
+      - docker login registry.digitalocean.com -u rohit@cloudtix.in -p $token
 
   - name: Build docker image
     commands:
-      - docker build -t rohitdarekar/gitcommits:${DRONE_COMMIT_SHA:0:10} .
+      - docker build -t registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:0:10} .
     depends_on:
       - login to docker hub
 
@@ -32,21 +32,25 @@ steps:
 
   - name: use slim and compress image
     commands:
-      - slim build --env-file .env rohitdarekar816/gitcommits:${DRONE_COMMIT_SHA:0:10}
+      - slim build --env "MONGO_URL=mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook" registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:0:10}
     depends_on:
       - Install slim tool kit
-  
+
+  - name: rename image
+    commands:
+      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:10}
+      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:latest
+
   - name: docker image push
     commands:
-      - docker push rohitdarekar816/gitcommits.slim:latest
+      - docker push registry.digitalocean.com/gitcommits:latest
+      - docker push registry.digitalocean.com/gitcommits;{$DRONE_COMMIT_SHA:10}
     depends_on:
-      - use slim and compress image
+      - rename image
 
 trigger:
   event:
     - push
-    - tag
-    - pull_request
   branch:
     - main
-    
+
