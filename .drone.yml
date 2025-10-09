@@ -7,7 +7,7 @@ token:
 
 server:
   image: docker-20-04
-  size: s-2vcpu-4gb-120gb-intel
+  size: s-1vcpu-1gb
   region: nyc1
 
 steps:
