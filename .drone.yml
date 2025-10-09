@@ -53,5 +53,6 @@ steps:
 trigger:
   event:
     - push
+    - tag
   branch:
     - main
