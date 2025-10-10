@@ -39,15 +39,15 @@ steps:
 
   - name: rename image
     commands:
-      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:10}
-      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:10} registry.digitalocean.com/gitcommits:latest
+      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:0:10} registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:0:10}
+      - docker tag registry.digitalocean.com/gitcommits.slim:${DRONE_COMMIT_SHA:0:10} registry.digitalocean.com/gitcommits:latest
     depends_on:
       - use slim and compress image
 
   - name: docker image push
     commands:
       - docker push registry.digitalocean.com/gitcommits:latest
-      - docker push registry.digitalocean.com/gitcommits;{$DRONE_COMMIT_SHA:10}
+      - docker push registry.digitalocean.com/gitcommits;{$DRONE_COMMIT_SHA:0:10}
     depends_on:
       - rename image
 
