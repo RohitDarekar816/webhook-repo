@@ -21,6 +21,7 @@ steps:
   - name: Build docker image
     commands:
       - docker build -t registry.digitalocean.com/gitcommits:${DRONE_COMMIT_SHA:0:10} .
+      - docker images
     depends_on:
       - login to docker hub
 
