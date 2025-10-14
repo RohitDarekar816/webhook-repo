@@ -46,8 +46,8 @@ steps:
 
   - name: docker image push
     commands:
-      - docker push registry.digitalocean.com/gitcommits:latest
-      - docker push registry.digitalocean.com/gitcommits;{$DRONE_COMMIT_SHA:0:10}
+      - docker push registry.digitalocean.com/gitcommits/test:latest
+      - docker push registry.digitalocean.com/gitcommits/test:{$DRONE_COMMIT_SHA:0:10}
     depends_on:
       - rename image
 
