@@ -20,3 +20,6 @@ spec:
           image: rohitdarekar816/gitcommits:latest
           ports:
             - containerPort: 5004
+          env:
+            - name: MONGO_URL
+              value: "mongodb+srv://myAtlasDBUser:Rohit2023@github-webhook.p0pdz5y.mongodb.net/?retryWrites=true&w=majority&appName=Github-Webhook"
