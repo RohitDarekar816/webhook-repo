@@ -6,3 +6,6 @@ kind: Kustomization
 resources:
   - deployment.yml
   - service.yml
+
+commonLabels:
+  app: webhook
