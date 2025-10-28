@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook
+  labels:
+    app: webhook
+  namespace: webhook-ki-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webhook
+  template:
+    metadata:
+      labels:
+        app: webhook
+    spec:
+      containers:
+        - name: webhook
+          image: rohitdarekar816/gitcommits:latest
+          ports:
+            - containerPort: 5004
