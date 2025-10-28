@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: webhook
-          image: rohitdarekar816/gitcommits:latest
+          image: rohitdarekar816/gitcommits:v1.0.0
           ports:
             - containerPort: 5004
           env:
